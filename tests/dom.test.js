@@ -5,10 +5,12 @@ import { desmontarPlantilla, montarPlantilla } from "./plantilla.js";
  * El PDF se genera de verdad en `pdf.test.js`. Aquí se simula para probar el
  * flujo del botón: pestaña, avisos y estado del botón.
  */
-vi.mock("../src/scripts/pdf.js", () => ({
+const pdfFalso = {
   exportarPDF: vi.fn(async () => ({ output: () => ({ tipo: "pdf-falso" }) })),
   nombreArchivo: vi.fn(() => "COT-001.pdf"),
-}));
+};
+
+vi.mock("../src/scripts/pdf.js", () => pdfFalso);
 
 let ventana;
 
@@ -42,11 +44,15 @@ function tabular(input) {
 }
 
 beforeEach(async () => {
-  vi.useRealTimers();
+  // Se finge solo setTimeout: así el guardado diferido es controlable y no
+  // queda ningún temporizador vivo apuntando a un DOM ya desmontado.
+  // `vi.waitFor` sigue usando temporizadores reales.
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   ventana = await montarPlantilla();
 });
 
 afterEach(() => {
+  vi.clearAllTimers();
   vi.useRealTimers();
   vi.restoreAllMocks();
   desmontarPlantilla();
@@ -78,6 +84,20 @@ describe("arranque", () => {
     ].join("-");
 
     expect($("#fecha-actual").dateTime).toBe(esperado);
+  });
+
+  it("propone una vigencia de 7 días", async () => {
+    await arrancarScript();
+
+    const hasta = new Date();
+    hasta.setDate(hasta.getDate() + 7);
+    const esperado = [
+      hasta.getFullYear(),
+      String(hasta.getMonth() + 1).padStart(2, "0"),
+      String(hasta.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    expect($('[aria-label="Fecha de vencimiento"]').value).toBe(esperado);
   });
 
   it("arranca en pesos colombianos", async () => {
@@ -260,7 +280,6 @@ describe("tabulador desde el último precio", () => {
 
 describe("guardado local", () => {
   it("guarda lo escrito después de la pausa", async () => {
-    vi.useFakeTimers();
     await arrancarScript();
     llenarFila(0, { desc: "Servicio", cant: "2", precio: "300" });
 
@@ -273,7 +292,6 @@ describe("guardado local", () => {
   });
 
   it("guarda también los campos del encabezado", async () => {
-    vi.useFakeTimers();
     await arrancarScript();
     escribir($('[aria-label="Nombre del cliente"]'), "Acme");
     vi.advanceTimersByTime(600);
@@ -312,13 +330,100 @@ describe("guardado local", () => {
   });
 
   it("no guarda la fecha de emisión: siempre debe ser hoy", async () => {
-    vi.useFakeTimers();
     await arrancarScript();
     llenarFila(0, { desc: "Algo" });
     vi.advanceTimersByTime(600);
 
     const guardado = JSON.parse(localStorage.getItem("cotizador:v1"));
     expect(Object.keys(guardado.campos)).not.toContain("Fecha de la cotización");
+  });
+});
+
+describe("vigencia", () => {
+  const vence = () => $('[aria-label="Fecha de vencimiento"]');
+
+  function enISO(dias) {
+    const d = new Date();
+    d.setDate(d.getDate() + dias);
+    return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+  }
+
+  it("recalcula la vigencia si el usuario nunca la tocó", async () => {
+    // Un guardado viejo, de una visita de hace semanas.
+    localStorage.setItem(
+      "cotizador:v1",
+      JSON.stringify({ campos: { "Fecha de vencimiento": "2020-01-01" }, filas: [] })
+    );
+
+    await arrancarScript();
+
+    expect(vence().value).toBe(enISO(7));
+  });
+
+  it("respeta la fecha que el usuario eligió", async () => {
+    localStorage.setItem(
+      "cotizador:v1",
+      JSON.stringify({
+        campos: { "Fecha de vencimiento": "2030-12-31" },
+        filas: [],
+        vigenciaTocada: true,
+      })
+    );
+
+    await arrancarScript();
+
+    expect(vence().value).toBe("2030-12-31");
+  });
+
+  it("marca la vigencia como tocada al editarla y lo guarda", async () => {
+    await arrancarScript();
+
+    escribir(vence(), "2027-03-15");
+    vi.advanceTimersByTime(600);
+
+    const guardado = JSON.parse(localStorage.getItem("cotizador:v1"));
+    expect(guardado.vigenciaTocada).toBe(true);
+    expect(guardado.campos["Fecha de vencimiento"]).toBe("2027-03-15");
+  });
+
+  it("no marca como tocado lo que escribe el propio script", async () => {
+    await arrancarScript();
+
+    escribir($('[aria-label="Nombre del cliente"]'), "Acme");
+    vi.advanceTimersByTime(600);
+
+    const guardado = JSON.parse(localStorage.getItem("cotizador:v1"));
+    expect(guardado.vigenciaTocada).toBe(false);
+  });
+});
+
+describe("limpiar todo", () => {
+  beforeEach(() => {
+    globalThis.location = { reload: vi.fn() };
+  });
+
+  it("no borra nada si el usuario cancela", async () => {
+    await arrancarScript();
+    llenarFila(0, { desc: "Algo" });
+    vi.advanceTimersByTime(600);
+    ventana.confirm = vi.fn(() => false);
+
+    $("#btn-limpiar").click();
+
+    expect(localStorage.getItem("cotizador:v1")).not.toBeNull();
+    expect(location.reload).not.toHaveBeenCalled();
+  });
+
+  it("borra el guardado y recarga si el usuario confirma", async () => {
+    await arrancarScript();
+    llenarFila(0, { desc: "Algo" });
+    vi.advanceTimersByTime(600);
+    ventana.confirm = vi.fn(() => true);
+
+    $("#btn-limpiar").click();
+
+    expect(localStorage.getItem("cotizador:v1")).toBeNull();
+    expect(location.reload).toHaveBeenCalled();
   });
 });
 
@@ -370,6 +475,23 @@ describe("exportar a PDF", () => {
 
     await vi.waitFor(() => expect(clicEnlace).toHaveBeenCalled());
     expect($("#aviso-guardado").textContent).toContain("descargó");
+  });
+
+  it("avisa y cierra la pestaña si el PDF falla", async () => {
+    await arrancarScript();
+    llenarFila(0, { desc: "Servicio", cant: "1", precio: "100" });
+
+    const pestana = { closed: false, location: { href: "" }, close: vi.fn() };
+    ventana.open = vi.fn(() => pestana);
+    pdfFalso.exportarPDF.mockRejectedValueOnce(new Error("boom"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const boton = $(".js-exportar-pdf");
+    boton.click();
+
+    await vi.waitFor(() => expect(pestana.close).toHaveBeenCalled());
+    expect($("#aviso-guardado").textContent).toContain("No se pudo generar");
+    expect(boton.disabled).toBe(false);
   });
 
   it("deja el botón utilizable de nuevo al terminar", async () => {

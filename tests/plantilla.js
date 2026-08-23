@@ -24,6 +24,7 @@ const GLOBALES = [
   "window",
   "document",
   "localStorage",
+  "location",
   "Event",
   "KeyboardEvent",
   "MouseEvent",

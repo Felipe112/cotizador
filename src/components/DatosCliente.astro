@@ -13,7 +13,10 @@ const fechaLegible = [
   hoy.getFullYear(),
 ].join("/");
 
-const vence = new Date(hoy.getTime() + 15 * 24 * 60 * 60 * 1000);
+/* Vigencia por defecto: una semana. El script la recalcula al cargar salvo
+   que el usuario ya la haya cambiado a mano. */
+const vence = new Date(hoy);
+vence.setDate(vence.getDate() + 7);
 const venceISO = [
   vence.getFullYear(),
   String(vence.getMonth() + 1).padStart(2, "0"),

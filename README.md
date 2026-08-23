@@ -1,84 +1,47 @@
 # Cotizador
 
-Plantilla de cotización en Astro: una hoja limpia, editable directo en pantalla,
-que se calcula sola y se imprime o exporta a PDF en tamaño A4.
-
-## Uso
+Plantilla de cotización en Astro: se llena en pantalla, se calcula sola y se
+exporta a PDF A4 en una pestaña nueva.
 
 ```bash
 npm install
-npm run dev      # http://localhost:4321
-npm run build    # sitio estático en dist/
-npm run preview
-npm test         # pruebas unitarias (vitest)
-npm run test:watch
+npm run dev        # http://localhost:4321
+npm run build
+npm test
+npm run test:coverage
 ```
-
-## Qué incluye
-
-- **Encabezado**: nombre de empresa, eslogan y el título *Cotización*.
-- **Datos del cliente en dos renglones**: cliente + n.º de cotización; contacto + fecha y vigencia.
-  La fecha se llena con el día actual.
-- **Tabla de productos**: contador automático, nombre, cantidad, precio unitario y
-  total por renglón (`cantidad × precio`). Botón para agregar filas, botón `×` para quitarlas.
-  Tabular desde el precio de la última fila crea la siguiente y salta a su descripción,
-  para cargar muchos productos sin soltar el teclado. Los montos de la tabla van sin
-  código de moneda: solo aparece en los totales.
-- **Resumen**: subtotal, descuento %, impuesto % y **total general**. Selector de moneda.
-- **Pie**: firma autorizada y datos de contacto.
-- **Exportar a PDF**: botón al final de la hoja (y en la barra superior). Abre el PDF
-  en una **pestaña nueva**, en A4, con texto vectorial seleccionable y buscable —no es
-  una captura de pantalla—. Si el navegador bloquea la pestaña emergente, el archivo se descarga.
-- **Guardado local**: lo escrito se conserva en el navegador (localStorage) y vuelve al recargar.
-  "Limpiar todo" lo borra.
 
 ## Estructura
 
 ```
 src/
-├─ components/
-│  ├─ BarraHerramientas.astro   # botones (no se imprimen)
-│  ├─ EncabezadoCotizacion.astro
-│  ├─ DatosCliente.astro
-│  ├─ TablaProductos.astro
-│  ├─ ResumenTotales.astro
-│  └─ PieCotizacion.astro
+├─ components/     # encabezado, datos del cliente, tabla, totales, pie
 ├─ layouts/Layout.astro
 ├─ pages/index.astro
 ├─ scripts/
-│  ├─ calculo.js                # aritmética pura, sin DOM
-│  ├─ cotizador.js              # une el DOM con el cálculo: filas, guardado, PDF
-│  └─ pdf.js                    # dibuja el PDF A4 con jsPDF (carga diferida)
-└─ styles/global.css            # paleta azul/verde + estilos de impresión
+│  ├─ calculo.js   # aritmética pura, sin DOM
+│  ├─ cotizador.js # une el DOM con el cálculo: filas, guardado, PDF
+│  └─ pdf.js       # dibuja el PDF con jsPDF (carga diferida)
+└─ styles/global.css
+tests/             # vitest: calculo, pdf y DOM
 ```
 
-## Pruebas
+## Detalles que no se ven en el código
 
-`npm test` (vitest). Tres archivos:
-
-- `tests/calculo.test.js` — la aritmética: multiplicación por fila, subtotal,
-  orden descuento → impuesto, recorte de porcentajes, campos con basura.
-- `tests/pdf.test.js` — generación del PDF: páginas, salto de página, casos sin
-  empresa / sin folio / sin notas, nombre de archivo, y que la tabla se dibuje
-  sin código de moneda.
-- `tests/dom.test.js` — la plantilla viva: agregar y quitar filas, renumerado,
-  tabulador que encadena productos, guardado y restauración, y que la pestaña
-  del PDF se abra dentro del clic.
-
-Las pruebas de DOM montan los componentes .astro de verdad con la Container API
-y los meten en un jsdom creado a mano (`tests/plantilla.js`). Se hace así porque
-Vitest, con `environment: "jsdom"`, transforma los módulos en modo web y los
-.astro solo compilan en modo SSR. La ventaja: si alguien renombra un id o una
-clase de un componente, las pruebas se rompen.
+- **La fecha de emisión se fija en el cliente**, no en el HTML: el sitio es
+  estático y la fecha del build quedaría congelada.
+- **"Válida hasta" propone hoy + 7 días** y se recalcula en cada visita, salvo
+  que el usuario la haya cambiado a mano (`data-tocado`).
+- **La pestaña del PDF se abre dentro del clic**, antes de generar el archivo.
+  Al revés, el bloqueador de ventanas emergentes la cancela.
+- **Los montos de la tabla van sin moneda**; el código ISO solo aparece en los
+  totales.
+- **Las pruebas de DOM montan los componentes .astro reales** en un jsdom hecho
+  a mano (`tests/plantilla.js`), porque con `environment: "jsdom"` Vitest
+  transforma en modo web y los .astro solo compilan en modo SSR.
 
 ## Personalizar
 
-Los colores viven en las variables CSS de `src/styles/global.css` (`:root`):
-`--brand-*` para los azules y `--accent-*` para los verdes. Cambiar ahí se refleja
-en toda la plantilla, incluida la impresión.
-
-Para cambiar el número de filas iniciales: `filasIniciales` en `TablaProductos.astro`.
-El diseño del PDF vive en `src/scripts/pdf.js`: la paleta está en la constante `C`
-y las columnas de la tabla en `COL`.
-
-Para un impuesto por defecto: `<ResumenTotales impuesto={16} />` en `src/pages/index.astro`.
+- Colores: variables `--brand-*` y `--accent-*` en `src/styles/global.css`.
+- Diseño del PDF: paleta `C`, columnas `COL` y márgenes en `src/scripts/pdf.js`.
+- Impuesto por defecto: `<ResumenTotales impuesto={19} />` en `src/pages/index.astro`.

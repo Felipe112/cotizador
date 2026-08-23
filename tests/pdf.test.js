@@ -120,6 +120,23 @@ describe("exportarPDF", () => {
     expect(doc.getNumberOfPages()).toBeGreaterThan(1);
   });
 
+  it("aprovecha el alto de la hoja en vez de reservar de más", async () => {
+    // El pie (firma y contacto) se dibuja debajo de su línea, así que las filas
+    // pueden bajar hasta ella. Si alguien vuelve a reservar espacio de más,
+    // estos conteos suben y la prueba avisa.
+    expect((await exportarPDF(datosDe({ filas: muchasFilas(20) }))).getNumberOfPages()).toBeLessThanOrEqual(2);
+    expect((await exportarPDF(datosDe({ filas: muchasFilas(40) }))).getNumberOfPages()).toBeLessThanOrEqual(2);
+    expect((await exportarPDF(datosDe({ filas: muchasFilas(100) }))).getNumberOfPages()).toBeLessThanOrEqual(4);
+  });
+
+  it("nunca deja una fila encima de la línea del pie", async () => {
+    // Con 21 filas la última cae justo en el borde: si se pasara, se vería
+    // pisando el pie en vez de saltar de página.
+    const doc = await exportarPDF(datosDe({ filas: muchasFilas(21) }));
+
+    expect(doc.getNumberOfPages()).toBeLessThanOrEqual(2);
+  });
+
   it("no falla sin nombre de empresa", async () => {
     const doc = await exportarPDF(datosDe({ empresa: "   " }));
 
@@ -144,6 +161,19 @@ describe("exportarPDF", () => {
     const doc = await exportarPDF(datosDe({ notas: "Condición larga. ".repeat(400) }));
 
     expect(doc.getNumberOfPages()).toBe(1);
+  });
+
+  it("dibuja las líneas de descuento e impuesto solo cuando hay monto", async () => {
+    const dinero = vi.fn(datosDe().dinero);
+
+    await exportarPDF(datosDe({ dinero, pctDescuento: 10, montoDescuento: 20, pctImpuesto: 7, montoImpuesto: 12.6 }));
+    expect(dinero).toHaveBeenCalledWith(20);
+    expect(dinero).toHaveBeenCalledWith(12.6);
+
+    const soloSubtotal = vi.fn(datosDe().dinero);
+    await exportarPDF(datosDe({ dinero: soloSubtotal }));
+    const montos = soloSubtotal.mock.calls.map(([v]) => v);
+    expect(montos).toEqual([200, 200]); // subtotal y total, nada más
   });
 
   it("escribe la tabla sin código de moneda y los totales con él", async () => {

@@ -192,18 +192,42 @@ function valorPorEtiqueta(etiqueta) {
  */
 const elFecha = document.getElementById("fecha-actual");
 
+/** Días que vale la cotización mientras el usuario no diga otra cosa. */
+const DIAS_VIGENCIA = 7;
+const elVence = document.querySelector('.hoja [aria-label="Fecha de vencimiento"]');
+
+/** Fecha en el formato que entiende <input type="date">. */
+function aISO(fecha) {
+  return [
+    fecha.getFullYear(),
+    String(fecha.getMonth() + 1).padStart(2, "0"),
+    String(fecha.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function fijarFechaDeHoy() {
   if (!elFecha) return;
-  const hoy = new Date();
-  const iso = [
-    hoy.getFullYear(),
-    String(hoy.getMonth() + 1).padStart(2, "0"),
-    String(hoy.getDate()).padStart(2, "0"),
-  ].join("-");
+  const iso = aISO(new Date());
 
   elFecha.dateTime = iso;
   elFecha.textContent = iso.split("-").reverse().join("/");
 }
+
+/**
+ * Vigencia por defecto: hoy + 7 días, recalculada en cada visita para que no
+ * quede una fecha vieja guardada. Si el usuario ya la cambió a mano, se respeta.
+ */
+function ajustarVigencia() {
+  if (!elVence || elVence.dataset.tocado === "1") return;
+
+  const hasta = new Date();
+  hasta.setDate(hasta.getDate() + DIAS_VIGENCIA);
+  elVence.value = aISO(hasta);
+}
+
+elVence?.addEventListener("input", () => {
+  elVence.dataset.tocado = "1";
+});
 
 function recolectar() {
   return {
@@ -281,7 +305,6 @@ document.querySelectorAll(".js-exportar-pdf").forEach((boton) =>
   boton.addEventListener("click", () => exportarAPdf(boton))
 );
 
-
 btnLimpiar?.addEventListener("click", () => {
   const ok = window.confirm("¿Borrar todo lo escrito en esta cotización?");
   if (!ok) return;
@@ -312,6 +335,8 @@ function guardar() {
     estado.campos[el.getAttribute("aria-label")] = el.value;
   });
 
+  estado.vigenciaTocada = elVence?.dataset.tocado === "1";
+
   try {
     localStorage.setItem(ALMACEN, JSON.stringify(estado));
     anunciar("Guardado en este navegador");
@@ -340,6 +365,8 @@ function restaurar() {
     if (typeof valor === "string") el.value = valor;
   });
 
+  if (estado.vigenciaTocada && elVence) elVence.dataset.tocado = "1";
+
   if (Array.isArray(estado.filas) && estado.filas.length) {
     cuerpo.innerHTML = "";
     estado.filas.forEach((datos) => agregarFila(datos));
@@ -363,4 +390,5 @@ document.addEventListener("input", (evento) => {
 
 fijarFechaDeHoy();
 restaurar();
+ajustarVigencia();
 recalcular();
