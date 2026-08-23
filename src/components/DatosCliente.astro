@@ -1,0 +1,166 @@
+---
+// Fecha por defecto: hoy, en formato aceptado por <input type="date">.
+const hoy = new Date();
+const hoyISO = [
+  hoy.getFullYear(),
+  String(hoy.getMonth() + 1).padStart(2, "0"),
+  String(hoy.getDate()).padStart(2, "0"),
+].join("-");
+
+const fechaLegible = [
+  String(hoy.getDate()).padStart(2, "0"),
+  String(hoy.getMonth() + 1).padStart(2, "0"),
+  hoy.getFullYear(),
+].join("/");
+
+const vence = new Date(hoy.getTime() + 15 * 24 * 60 * 60 * 1000);
+const venceISO = [
+  vence.getFullYear(),
+  String(vence.getMonth() + 1).padStart(2, "0"),
+  String(vence.getDate()).padStart(2, "0"),
+].join("-");
+---
+
+<section class="datos" aria-label="Datos del cliente y de la cotización">
+  <!-- Renglón 1 -->
+  <div class="datos__renglon">
+    <div class="bloque bloque--cliente">
+      <span class="etiqueta">Para</span>
+      <input class="campo campo--nombre" placeholder="Nombre del cliente" aria-label="Nombre del cliente" />
+    </div>
+    <div class="bloque bloque--meta">
+      <span class="meta__clave">Fecha</span>
+      <time class="valor-fijo" id="fecha-actual" datetime={hoyISO}>{fechaLegible}</time>
+    </div>
+  </div>
+
+  <!-- Renglón 2 -->
+  <div class="datos__renglon">
+    <div class="bloque bloque--cliente">
+      <input
+        class="campo campo--detalle"
+        placeholder="Empresa · Dirección · Teléfono · Correo"
+        aria-label="Datos de contacto del cliente"
+      />
+    </div>
+    <div class="bloque bloque--meta bloque--meta-fecha">
+      <span class="meta__clave">Válida hasta</span>
+      <input type="date" class="campo campo--fecha" value={venceISO} aria-label="Fecha de vencimiento" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .datos {
+    display: grid;
+    gap: 6px;
+    padding: 16px 18px;
+    background: var(--brand-050);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brand-700);
+    border-radius: var(--radius-sm);
+  }
+
+  .datos__renglon {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 20px;
+  }
+
+  .bloque {
+    min-width: 0;
+  }
+
+  .bloque--cliente {
+    display: grid;
+    gap: 1px;
+  }
+
+  .bloque--meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .meta__clave {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .campo--nombre {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--brand-900);
+  }
+
+  .campo--detalle {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* La fecha de emisión es solo lectura: se ve como dato, no como campo. */
+  .valor-fijo {
+    justify-self: end;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-900);
+    padding: 5px 8px;
+  }
+
+  /* El selector de fecha tiene ancho propio: la celda se ajusta a él
+     en vez de estirarlo, que era lo que lo hacía verse mal. */
+  .bloque--meta-fecha {
+    grid-template-columns: auto max-content;
+    justify-content: space-between;
+  }
+
+  .campo--fecha {
+    width: auto;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand-900);
+    text-align: right;
+    padding: 4px 6px;
+    border-color: var(--line);
+    background: var(--paper);
+    color-scheme: light;
+  }
+
+  .campo--fecha::-webkit-calendar-picker-indicator {
+    margin-left: 4px;
+    padding: 0;
+    opacity: 0.45;
+    cursor: pointer;
+  }
+
+  .campo--fecha:hover::-webkit-calendar-picker-indicator,
+  .campo--fecha:focus::-webkit-calendar-picker-indicator {
+    opacity: 1;
+  }
+
+  @media print {
+    .campo--fecha {
+      border-color: transparent;
+      background: transparent;
+      padding: 5px 0;
+    }
+
+    .campo--fecha::-webkit-calendar-picker-indicator {
+      display: none;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .datos__renglon {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

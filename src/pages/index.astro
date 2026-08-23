@@ -1,0 +1,27 @@
+---
+import Layout from "../layouts/Layout.astro";
+import BarraHerramientas from "../components/BarraHerramientas.astro";
+import EncabezadoCotizacion from "../components/EncabezadoCotizacion.astro";
+import DatosCliente from "../components/DatosCliente.astro";
+import TablaProductos from "../components/TablaProductos.astro";
+import ResumenTotales from "../components/ResumenTotales.astro";
+import PieCotizacion from "../components/PieCotizacion.astro";
+import AccionExportar from "../components/AccionExportar.astro";
+---
+
+<Layout title="Cotización">
+  <BarraHerramientas />
+
+  <main class="hoja">
+    <div class="hoja__cuerpo">
+      <EncabezadoCotizacion />
+      <DatosCliente />
+      <TablaProductos />
+      <ResumenTotales />
+      <PieCotizacion />
+      <AccionExportar />
+    </div>
+  </main>
+
+  <script src="../scripts/cotizador.js"></script>
+</Layout>

@@ -1,0 +1,146 @@
+---
+interface Props {
+  empresa?: string;
+}
+
+const { empresa = "" } = Astro.props;
+
+const hoy = new Date();
+const folio = `COT-${hoy.getFullYear()}${String(hoy.getMonth() + 1).padStart(2, "0")}-001`;
+---
+
+<header class="encabezado">
+  <div class="encabezado__marca">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 40 40" width="34" height="34">
+        <path
+          d="M20 3 34.7 11.5v17L20 37 5.3 28.5v-17z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linejoin="round"></path>
+        <path
+          d="M14 20.5l4 4 8-9"
+          fill="none"
+          stroke="var(--accent-500)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+    </span>
+    <input
+      class="campo campo--empresa"
+      value={empresa}
+      placeholder="Nombre de tu empresa"
+      aria-label="Nombre de la empresa"
+    />
+  </div>
+
+  <div class="encabezado__titulo">
+    <span class="franja franja--azul" aria-hidden="true"></span>
+    <h1>Cotización</h1>
+    <span class="folio">
+      <span class="folio__clave">N.º</span>
+      <input class="campo campo--folio" value={folio} aria-label="Número de cotización" />
+    </span>
+    <span class="franja franja--verde" aria-hidden="true"></span>
+  </div>
+</header>
+
+<style>
+  .encabezado {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 4px;
+  }
+
+  .encabezado__marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--brand-800);
+  }
+
+  .logo {
+    flex: none;
+    display: grid;
+    place-items: center;
+  }
+
+  .campo--empresa {
+    flex: 1;
+    min-width: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--brand-900);
+  }
+
+  .encabezado__titulo {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .encabezado__titulo h1 {
+    font-size: clamp(30px, 6vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--brand-900);
+    white-space: nowrap;
+  }
+
+  .franja {
+    height: 11px;
+    border-radius: 3px;
+    flex: 1;
+    /* Con align-items: baseline las franjas se alinean al pie del título. */
+    align-self: center;
+  }
+
+  .franja--azul {
+    background: linear-gradient(90deg, var(--brand-500), var(--brand-700));
+  }
+
+  .franja--verde {
+    background: linear-gradient(90deg, var(--accent-500), var(--accent-600));
+    flex: none;
+    width: 52px;
+  }
+
+  .folio {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    flex: none;
+  }
+
+  .folio__clave {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .campo--folio {
+    width: 15ch;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: var(--font-num);
+    color: var(--brand-700);
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  @media (max-width: 560px) {
+    .encabezado__titulo {
+      flex-wrap: wrap;
+      gap: 8px 12px;
+    }
+
+    .franja--azul {
+      order: -1;
+      flex-basis: 100%;
+    }
+  }
+</style>

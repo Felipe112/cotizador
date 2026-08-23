@@ -1,0 +1,227 @@
+---
+interface Props {
+  /** Porcentaje de impuesto por defecto (0 = sin impuesto). */
+  impuesto?: number;
+}
+
+const { impuesto = 0 } = Astro.props;
+---
+
+<section class="resumen" aria-label="Totales de la cotización">
+  <div class="resumen__notas">
+    <span class="etiqueta">Notas y condiciones</span>
+    <textarea
+      class="campo campo--notas"
+      rows="3"
+      placeholder="Condiciones de pago, tiempo de entrega, garantía, vigencia del precio…"
+      aria-label="Notas y condiciones"></textarea>
+  </div>
+
+  <div class="resumen__cifras">
+    <div class="linea">
+      <span class="linea__clave">Subtotal</span>
+      <span class="linea__valor" id="subtotal">—</span>
+    </div>
+
+    <div class="linea">
+      <label class="linea__clave" for="descuento">
+        Descuento
+        <input class="mini" id="descuento" type="number" min="0" max="100" step="0.01" value="0" aria-label="Porcentaje de descuento" />
+        <span class="signo">%</span>
+      </label>
+      <span class="linea__valor" id="monto-descuento">—</span>
+    </div>
+
+    <div class="linea">
+      <label class="linea__clave" for="impuesto">
+        Impuesto
+        <input class="mini" id="impuesto" type="number" min="0" max="100" step="0.01" value={impuesto} aria-label="Porcentaje de impuesto" />
+        <span class="signo">%</span>
+      </label>
+      <span class="linea__valor" id="monto-impuesto">—</span>
+    </div>
+
+    <div class="total-general">
+      <span class="total-general__clave">Total</span>
+      <span class="total-general__valor" id="total-general">—</span>
+    </div>
+
+    <p class="resumen__pie">
+      <span id="conteo-articulos">0 artículos</span> ·
+      <label class="moneda-label" for="moneda">Moneda</label>
+      <select id="moneda" class="moneda" aria-label="Moneda">
+        <option value="COP" selected>COP $</option>
+        <option value="USD">USD $</option>
+        <option value="MXN">MXN $</option>
+        <option value="PAB">PAB B/.</option>
+        <option value="EUR">EUR €</option>
+        <option value="CLP">CLP $</option>
+        <option value="ARS">ARS $</option>
+        <option value="PEN">PEN S/</option>
+      </select>
+    </p>
+  </div>
+</section>
+
+<style>
+  .resumen {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: 26px;
+    align-items: start;
+    padding-top: 4px;
+  }
+
+  .resumen__notas {
+    display: grid;
+    gap: 6px;
+  }
+
+  .campo--notas {
+    resize: vertical;
+    min-height: 62px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    border-color: var(--line);
+    background: var(--brand-050);
+  }
+
+  .resumen__cifras {
+    display: grid;
+    gap: 2px;
+  }
+
+  .linea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    font-size: 14px;
+  }
+
+  .linea + .linea {
+    border-top: 1px solid var(--line);
+  }
+
+  .linea__clave {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .linea__valor {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--brand-900);
+  }
+
+  .mini {
+    font: inherit;
+    font-family: var(--font-num);
+    width: 58px;
+    text-align: right;
+    padding: 3px 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--brand-800);
+  }
+
+  .mini:focus {
+    outline: none;
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 3px var(--brand-100);
+  }
+
+  .mini::-webkit-outer-spin-button,
+  .mini::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .mini[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .signo {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .total-general {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(100deg, var(--accent-600), var(--accent-700));
+    color: #fff;
+  }
+
+  .total-general__clave {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .total-general__valor {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .resumen__pie {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .moneda {
+    font: inherit;
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--paper);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  @media (max-width: 680px) {
+    .resumen {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .mini {
+      border-color: transparent;
+      background: transparent;
+      width: auto;
+      padding: 0;
+    }
+    .moneda-label,
+    .moneda {
+      display: none;
+    }
+    .campo--notas {
+      background: transparent;
+      border-color: var(--line);
+    }
+  }
+</style>

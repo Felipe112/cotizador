@@ -1,0 +1,224 @@
+/* ============================================================
+   Cotizador — Sistema de diseño
+   Paleta azul/verde: tonos frios, bajo contraste agresivo,
+   comodos para lectura prolongada en pantalla y en papel.
+   ============================================================ */
+
+:root {
+  /* Marca */
+  --brand-900: #0b3d4d;
+  --brand-800: #0f5068;
+  --brand-700: #146880;
+  --brand-500: #2a8ca6;
+  --brand-100: #dff0f4;
+  --brand-050: #f0f8fa;
+
+  /* Acento verde */
+  --accent-700: #0b7a5f;
+  --accent-600: #109172;
+  --accent-500: #17a67f;
+  --accent-100: #d9f2e9;
+  --accent-050: #eefaf5;
+
+  /* Neutros */
+  --ink: #16303a;
+  --ink-soft: #4a6874;
+  --muted: #7d97a1;
+  --line: #dde8ec;
+  --line-strong: #c3d6dd;
+  --paper: #ffffff;
+  --canvas: #e9f1f4;
+
+  /* Tipografia */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-num: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
+
+  /* Medidas */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 10px 40px -12px rgba(11, 61, 77, 0.28);
+  --page-w: 210mm;
+  --page-pad: 16mm;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, var(--brand-100), transparent 70%),
+    var(--canvas);
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+}
+
+h1, h2, h3, p, figure {
+  margin: 0;
+}
+
+/* ---------- Hoja ---------- */
+
+.hoja {
+  width: min(100%, var(--page-w));
+  margin: 0 auto;
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.hoja__cuerpo {
+  padding: var(--page-pad);
+  display: grid;
+  gap: 22px;
+}
+
+/* ---------- Campos editables ---------- */
+
+.campo {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  background: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.campo::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.campo:hover:not(:focus) {
+  background: var(--brand-050);
+  border-color: var(--line);
+}
+
+.campo:focus {
+  outline: none;
+  background: var(--paper);
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px var(--brand-100);
+}
+
+.campo--num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------- Botones ---------- */
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn--principal {
+  background: var(--accent-600);
+  color: #fff;
+}
+.btn--principal:hover { background: var(--accent-700); }
+
+.btn--marca {
+  background: var(--brand-700);
+  color: #fff;
+}
+.btn--marca:hover { background: var(--brand-800); }
+
+.btn--suave {
+  background: var(--brand-050);
+  color: var(--brand-800);
+  border-color: var(--line-strong);
+}
+.btn--suave:hover { background: var(--brand-100); }
+
+.btn:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+}
+
+/* ---------- Utilidades ---------- */
+
+.etiqueta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--brand-700);
+}
+
+.solo-pantalla { display: block; }
+
+/* ---------- Impresion / PDF ---------- */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body {
+    background: #fff;
+    padding: 0;
+  }
+
+  .hoja {
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .solo-pantalla,
+  .barra-acciones,
+  .col-acciones,
+  .btn {
+    display: none !important;
+  }
+
+  .campo {
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .campo--num { padding-right: 0; }
+
+  .tabla thead {
+    /* Fuerza impresion de fondos oscuros */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .fila-producto { break-inside: avoid; }
+}
+
+* {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
