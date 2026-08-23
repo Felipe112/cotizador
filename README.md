@@ -3,12 +3,14 @@
 Plantilla de cotización en Astro: se llena en pantalla, se calcula sola y se
 exporta a PDF A4 en una pestaña nueva.
 
+El proyecto usa **pnpm** (fijado con `packageManager` en `package.json`).
+
 ```bash
-npm install
-npm run dev        # http://localhost:4321
-npm run build
-npm test
-npm run test:coverage
+pnpm install
+pnpm dev             # http://localhost:4321
+pnpm build
+pnpm test
+pnpm test:coverage
 ```
 
 ## Estructura

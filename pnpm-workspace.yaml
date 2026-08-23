@@ -1,0 +1,6 @@
+# Ninguno de estos dos necesita su script de instalación aquí:
+# esbuild trae su binario como dependencia opcional por plataforma y el de
+# core-js solo imprime un aviso. Declararlos evita el warning en cada install.
+ignoredBuiltDependencies:
+  - core-js
+  - esbuild
