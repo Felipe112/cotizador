@@ -42,7 +42,7 @@ tests/             # vitest: calculo, pdf y DOM
   a mano (`tests/plantilla.js`), porque con `environment: "jsdom"` Vitest
   transforma en modo web y los .astro solo compilan en modo SSR.
 
-## Personalizar
+## Personalizar res
 
 - Colores: variables `--brand-*` y `--accent-*` en `src/styles/global.css`.
 - Diseño del PDF: paleta `C`, columnas `COL` y márgenes en `src/scripts/pdf.js`.
