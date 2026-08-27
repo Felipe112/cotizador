@@ -83,6 +83,23 @@ h1, h2, h3, p, figure {
   padding: var(--page-pad);
   display: grid;
   gap: 22px;
+  min-width: 0;
+}
+
+@media (max-width: 680px) {
+  :root {
+    --page-pad: 16px;
+  }
+
+  body {
+    padding: 20px 10px 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --page-pad: 10px;
+  }
 }
 
 /* ---------- Campos editables ---------- */

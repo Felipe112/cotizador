@@ -4,6 +4,7 @@ const filasIniciales = 3;
 ---
 
 <section class="tabla-wrap" aria-label="Detalle de productos o servicios">
+  <div class="tabla-scroll">
   <table class="tabla" id="tabla-productos">
     <thead>
       <tr>
@@ -44,6 +45,7 @@ const filasIniciales = 3;
       }
     </tbody>
   </table>
+  </div>
 
   <!-- Molde usado por el script para agregar filas nuevas. -->
   <template id="molde-fila">
@@ -83,10 +85,17 @@ const filasIniciales = 3;
   .tabla-wrap {
     display: grid;
     gap: 12px;
+    min-width: 0;
+  }
+
+  .tabla-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tabla {
     width: 100%;
+    min-width: 480px;
     border-collapse: collapse;
     font-size: 14px;
     table-layout: fixed;
