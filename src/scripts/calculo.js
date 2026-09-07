@@ -20,6 +20,23 @@ export function aPorcentaje(valor) {
 }
 
 /**
+ * Agrega separador de miles ("." cada 3 dígitos) mientras se escribe.
+ * La coma sigue siendo el separador decimal, igual que en `aNumero`, así que
+ * quitar los puntos del resultado alcanza para volver a tener un valor que
+ * `aNumero` entiende sin más conversión.
+ */
+export function formatearMiles(valor) {
+  const texto = String(valor ?? "");
+  const indiceComa = texto.indexOf(",");
+
+  const parteEntera = (indiceComa === -1 ? texto : texto.slice(0, indiceComa)).replace(/\D/g, "");
+  const parteDecimal =
+    indiceComa === -1 ? "" : "," + texto.slice(indiceComa + 1).replace(/\D/g, "").slice(0, 2);
+
+  return parteEntera.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + parteDecimal;
+}
+
+/**
  * Formateador de moneda: código ISO delante del monto ("COP 1,234.50").
  * El `currencyDisplay` va explícito porque, por defecto, la moneda del propio
  * locale saldría como "$" y el resto como código.
