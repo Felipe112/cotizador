@@ -11,6 +11,7 @@ import {
   calcularTotales,
   crearFormateador,
   crearFormateadorCifra,
+  formatearMiles,
   textoArticulos,
 } from "./calculo.js";
 
@@ -64,8 +65,21 @@ function leerFilas() {
     elemento: fila,
     desc: fila.querySelector(".campo--desc").value,
     cant: fila.querySelector(".js-cantidad").value,
-    precio: fila.querySelector(".js-precio").value,
+    // El precio se ve con puntos de miles; para calcular hay que quitarlos.
+    precio: fila.querySelector(".js-precio").value.replace(/\./g, ""),
   }));
+}
+
+/**
+ * Aplica el separador de miles al precio mientras se escribe, conservando la
+ * posición del cursor (contada desde el final, que es donde se sigue
+ * escribiendo casi siempre).
+ */
+function formatearPrecioEnVivo(input) {
+  const desdeElFinal = input.value.length - input.selectionStart;
+  input.value = formatearMiles(input.value);
+  const posicion = Math.max(0, input.value.length - desdeElFinal);
+  input.setSelectionRange(posicion, posicion);
 }
 
 function recalcular() {
@@ -110,7 +124,10 @@ function agregarFila(datos) {
   return nueva;
 }
 
-cuerpo.addEventListener("input", () => {
+cuerpo.addEventListener("input", (evento) => {
+  if (evento.target.classList.contains("js-precio")) {
+    formatearPrecioEnVivo(evento.target);
+  }
   recalcular();
   guardarDiferido();
 });
@@ -386,6 +403,17 @@ function anunciar(texto, esError = false) {
 
 document.addEventListener("input", (evento) => {
   if (evento.target.closest(".hoja") && !cuerpo.contains(evento.target)) guardarDiferido();
+});
+
+/**
+ * Cualquier input que arranque en "0" (descuento, impuesto, y los que se
+ * agreguen después) selecciona ese cero al recibir foco: al escribir, el
+ * primer caracter lo reemplaza en vez de quedar pegado ("05", "010"...).
+ */
+document.addEventListener("focusin", (evento) => {
+  if (evento.target.matches?.("input") && evento.target.value === "0") {
+    evento.target.select();
+  }
 });
 
 fijarFechaDeHoy();
